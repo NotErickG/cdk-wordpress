@@ -59,35 +59,20 @@ export class MySQLRdsInstance {
       }
     )
 
-    
+    const mysqlRDSInstance = new rds.ServerlessCluster(
+      scope, "WordpressServerless",{
+      engine:rds.DatabaseClusterEngine.AURORA_MYSQL,
+      vpc:defaultVPC,
+      scaling: { autoPause: cdk.Duration.seconds(0) },
+      deletionProtection:false,
+      backupRetention:cdk.Duration.days(3),
+      removalPolicy:cdk.RemovalPolicy.DESTROY,
+      // accidental deletion protection -- if true, you need to manually disable this in AWS web console to delete the database
+      securityGroups: [ingressSecurityGroup],
+      vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_ISOLATED },
+      credentials: rds.Credentials.fromSecret(databaseCredentialsSecret),
+      
+      })
 
-
-    const mysqlRDSInstance = new rds.DatabaseInstance(
-      scope,
-      `${props.prefix}-MySqlRDSInstance`,
-      {
-        credentials: rds.Credentials.fromSecret(databaseCredentialsSecret),
-        engine: rds.DatabaseInstanceEngine.mysql({
-          version: rds.MysqlEngineVersion.VER_8_0_23,
-        }),
-        port: props.port,
-        allocatedStorage: 10,
-        storageType: rds.StorageType.GP2,
-        backupRetention: cdk.Duration.days(3),
-        // t2.micro is free tier so we use it
-        instanceType: ec2.InstanceType.of(
-          ec2.InstanceClass.T2,
-          ec2.InstanceSize.MICRO
-        ),
-        vpc: defaultVPC,
-        // we chose to place our database in an isolated subnet of our VPC
-        vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_ISOLATED },
-        // if we destroy our database, AWS will take a snapshot of the database instance before terminating it
-        removalPolicy: cdk.RemovalPolicy.DESTROY,
-        // accidental deletion protection -- if true, you need to manually disable this in AWS web console to delete the database
-        deletionProtection: false,
-        securityGroups: [ingressSecurityGroup],
-      }
-    )
   }
 }

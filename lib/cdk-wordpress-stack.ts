@@ -4,12 +4,16 @@ import { CustomVPC } from './constructs/vpc'
 import { MySQLRdsInstance } from './constructs/rds'
 import { WordpressProject } from './constructs/wordpress'
 import { VPCSecurityGroup } from './constructs/SecurityGroup'
-import { config } from './config'
+
+interface MultiStackProps extends StackProps {
+  config: any;
+}
+
 
 export class CdkWordpressStack extends Stack {
-  constructor(scope: Construct, id: string, props?: StackProps) {
+  constructor(scope: Construct, id: string, props: MultiStackProps) {
     super(scope, id, props);
-
+    const config = props.config 
     // VPC -- fetch the custom VPC
     const customVPC = new CustomVPC(this, {
       prefix: config.projectName,
